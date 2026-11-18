@@ -33,8 +33,7 @@ function wordToScrewNumbers(word) {
 function saveProgress(page, unlockedDigitsCount) {
   try {
     localStorage.setItem("escape_current_page", page);
-    const prev = parseInt(localStorage.getItem("escape_unlocked_digits") || "0", 10);
-    if (typeof unlockedDigitsCount === "number" && unlockedDigitsCount > prev) {
+    if (typeof unlockedDigitsCount === "number") {
       localStorage.setItem("escape_unlocked_digits", String(unlockedDigitsCount));
     }
   } catch (e) {}
@@ -44,11 +43,9 @@ function renderHUD(label, unlockedDigitsCount) {
   const hudEl = document.getElementById("hud");
   if (!hudEl) return;
 
-  let stored = 0;
-  try {
-    stored = parseInt(localStorage.getItem("escape_unlocked_digits") || "0", 10);
-  } catch (e) {}
-  const unlocked = Math.max(unlockedDigitsCount || 0, stored);
+  // Använd sidans angivna antal upplåsta siffror direkt (0 i Akt 1, 1 i Akt 2, 2 i Akt 3, 3 i Finalen)
+  // så att siffrorna aldrig läcker ut i förväg på tidigare sidor.
+  const unlocked = typeof unlockedDigitsCount === "number" ? unlockedDigitsCount : 0;
 
   const d1 = unlocked >= 1 ? VAULT_CONFIG.digit1 : "?";
   const d2 = unlocked >= 2 ? VAULT_CONFIG.digit2 : "?";
@@ -61,4 +58,12 @@ function renderHUD(label, unlockedDigitsCount) {
       '<span class="digit-box' + (unlocked >= 2 ? ' unlocked' : '') + '">' + d2 + '</span>' +
       '<span class="digit-box' + (unlocked >= 3 ? ' unlocked' : '') + '">' + d3 + '</span>' +
     '</div>';
+}
+
+// Hjälpfunktion om man vill nollställa sparat framsteg helt
+function resetEscapeProgress() {
+  try {
+    localStorage.removeItem("escape_current_page");
+    localStorage.removeItem("escape_unlocked_digits");
+  } catch (e) {}
 }
