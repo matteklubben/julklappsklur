@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Gipslådan – Hemligt Meddelande</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --gold: #d4af37;
+      --gold-light: #f3d778;
+      --bg-dark: #0d0408;
+      --text-main: #f3e9e7;
+      --text-muted: #cbb8b4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      background: radial-gradient(circle at top, #260d17 0%, #0d0408 75%);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      padding: 18px 16px;
+      margin: 0 auto;
+    }
+    .card {
+      background: linear-gradient(180deg, #1d0b13 0%, #12050a 100%);
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      border-radius: 20px;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 28px rgba(212, 175, 55, 0.12);
+    }
+    .crest-badge {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.05) 70%);
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.9rem;
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.28);
+    }
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.5rem;
+      line-height: 1.25;
+      color: var(--gold-light);
+    }
+    p.lead {
+      margin: 0 0 24px;
+      font-size: 0.94rem;
+      line-height: 1.55;
+      color: var(--text-muted);
+    }
+    .start-film-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e2be4b 0%, #b88e1e 100%);
+      color: #16070c;
+      font-size: 1.02rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(212, 175, 55, 0.32);
+      transition: transform 0.15s ease;
+    }
+    .start-film-btn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="crest-badge">📦</div>
+      <div class="eyebrow">Inuti trälådan</div>
+      <h1>Ett sista hinder väntar</h1>
+      <p class="lead">
+        Trälådan är öppnad – men under locket vilar en förseglad gipslåda. Tryck på knappen nedan för att spela upp meddelandet.
+      </p>
+
+      <a href="gips-film.html" class="start-film-btn">
+        <span>▶</span>
+        <span>Spela upp meddelandet</span>
+      </a>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    try { if (typeof saveProgress === "function") saveProgress("gips-intro.html", 3); } catch (e) {}
+  </script>
+</body>
+</html>
