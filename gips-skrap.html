@@ -11,7 +11,6 @@
       --gold-light: #f3d778;
       --bg-dark: #0d0408;
       --text-main: #f3e9e7;
-      --text-muted: #cbb8b4;
     }
     * {
       box-sizing: border-box;
@@ -39,7 +38,7 @@
       background: linear-gradient(180deg, #1d0b13 0%, #12050a 100%);
       border: 1px solid rgba(212, 175, 55, 0.45);
       border-radius: 20px;
-      padding: 22px 18px 24px;
+      padding: 22px 18px;
       text-align: center;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.78);
     }
@@ -48,7 +47,7 @@
     .plaster-slab {
       position: relative;
       width: 100%;
-      height: 170px;
+      height: 190px;
       border-radius: 16px;
       overflow: hidden;
       border: 2px solid rgba(212, 175, 55, 0.6);
@@ -57,7 +56,6 @@
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
-      margin-bottom: 18px;
     }
 
     /* Stora bokstäver med luftigt mellanrum inunder gipset */
@@ -67,12 +65,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 14px;
       padding: 0 14px;
       pointer-events: none;
     }
     .secret-letter {
-      font-size: clamp(2.1rem, 8.5vw, 2.85rem);
+      font-size: clamp(2.2rem, 9vw, 3rem);
       font-weight: 900;
       color: var(--gold-light);
       text-shadow: 0 2px 12px rgba(212, 175, 55, 0.45);
@@ -88,185 +86,15 @@
       cursor: crosshair;
       touch-action: none;
     }
-
-    /* Sifferraden under skrapytan */
-    .digits-form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-    }
-    .digits-row {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-    }
-    .num-input {
-      width: 44px;
-      height: 48px;
-      border-radius: 10px;
-      border: 1.5px solid rgba(212, 175, 55, 0.45);
-      background: #0d0408;
-      color: var(--gold-light);
-      font-size: 1.15rem;
-      font-weight: 800;
-      text-align: center;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      -moz-appearance: textfield;
-    }
-    .num-input::-webkit-outer-spin-button,
-    .num-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    .num-input:focus {
-      border-color: var(--gold-light);
-      box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
-    }
-    .num-input.error {
-      border-color: #ef4444;
-      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
-    }
-    .num-input.correct {
-      border-color: #22c55e;
-      color: #86efac;
-      box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
-    }
-
-    .verify-btn {
-      width: 100%;
-      padding: 13px 18px;
-      border: none;
-      border-radius: 13px;
-      background: linear-gradient(135deg, #e2be4b 0%, #b88e1e 100%);
-      color: #16070c;
-      font-size: 0.98rem;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(212, 175, 55, 0.28);
-      transition: transform 0.15s ease;
-    }
-    .verify-btn:active {
-      transform: scale(0.98);
-    }
-
-    .feedback-line {
-      min-height: 18px;
-      font-size: 0.82rem;
-      color: #fca5a5;
-      margin-top: 2px;
-    }
-
-    /* Popup-ruta när rätt siffror har skrivits in */
-    .popup-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(8, 2, 5, 0.82);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 50;
-    }
-    .popup-card {
-      width: 100%;
-      max-width: 390px;
-      background: linear-gradient(180deg, #240e18 0%, #13050a 100%);
-      border: 2px solid var(--gold);
-      border-radius: 22px;
-      padding: 26px 20px;
-      text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.25);
-      animation: popIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    @keyframes popIn {
-      0% { transform: scale(0.84); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .popup-icon {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto 12px;
-      border-radius: 50%;
-      background: rgba(34, 197, 94, 0.16);
-      border: 2px solid #22c55e;
-      color: #4ade80;
-      font-size: 1.7rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .popup-title {
-      margin: 0 0 8px;
-      font-size: 1.35rem;
-      color: var(--gold-light);
-    }
-    .popup-text {
-      margin: 0 0 16px;
-      font-size: 0.93rem;
-      line-height: 1.5;
-      color: var(--text-muted);
-    }
-    .screw-pills {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .screw-pill {
-      padding: 7px 12px;
-      border-radius: 10px;
-      background: rgba(212, 175, 55, 0.16);
-      border: 1.5px solid var(--gold);
-      color: var(--gold-light);
-      font-weight: 900;
-      font-size: 1.05rem;
-    }
-    .popup-close-btn {
-      width: 100%;
-      padding: 13px 18px;
-      border: none;
-      border-radius: 13px;
-      background: linear-gradient(135deg, #e2be4b 0%, #b88e1e 100%);
-      color: #16070c;
-      font-size: 0.96rem;
-      font-weight: 800;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <!-- Avskalad skrapplatta utan instruktionstext -->
       <div class="plaster-slab" id="plasterSlab">
         <div class="secret-word-layer" id="secretWordLayer"></div>
         <canvas id="plasterCanvas"></canvas>
       </div>
-
-      <!-- Liten rad under för att skriva in rätt siffror -->
-      <form class="digits-form" id="digitsForm" onsubmit="checkNumbers(event)" autocomplete="off">
-        <div class="digits-row" id="digitsRow"></div>
-        <button type="submit" class="verify-btn">Kontrollera</button>
-        <div class="feedback-line" id="feedbackLine"></div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Popup-ruta när rätt siffror är inskrivna -->
-  <div class="popup-backdrop" id="successPopup">
-    <div class="popup-card">
-      <div class="popup-icon">🪛</div>
-      <h2 class="popup-title">Rätt siffror!</h2>
-      <p class="popup-text">
-        Nu kan du skruva ur de korrekta skruvarna på gipslådan:
-      </p>
-      <div class="screw-pills" id="screwPills"></div>
-      <button type="button" class="popup-close-btn" onclick="closePopup()">Stäng</button>
     </div>
   </div>
 
@@ -275,13 +103,11 @@
     try { if (typeof saveProgress === "function") saveProgress("gips-skrap.html", 3); } catch (e) {}
 
     // Hämta ordet från config.js (fallback till "GIPSET" om config.js saknas)
-    const SWEDISH_ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ";
     const rawWord = (typeof VAULT_CONFIG !== "undefined" && VAULT_CONFIG.gipsWord)
       ? String(VAULT_CONFIG.gipsWord)
       : "GIPSET";
 
     const SECRET_WORD = rawWord.toUpperCase().replace(/[^A-ZÅÄÖ]/g, "") || "GIPSET";
-    const EXPECTED_NUMBERS = SECRET_WORD.split("").map(ch => SWEDISH_ALPHA.indexOf(ch) + 1);
 
     // Rendera de stora bokstäverna med luftigt mellanrum under gipset
     const wordLayer = document.getElementById("secretWordLayer");
@@ -290,31 +116,6 @@
       span.className = "secret-letter";
       span.textContent = letter;
       wordLayer.appendChild(span);
-    });
-
-    // Skapa sifferrutorna under (en ruta per bokstav)
-    const digitsRow = document.getElementById("digitsRow");
-    const inputs = [];
-    EXPECTED_NUMBERS.forEach((_, idx) => {
-      const inp = document.createElement("input");
-      inp.type = "number";
-      inp.inputMode = "numeric";
-      inp.min = "1";
-      inp.max = "29";
-      inp.className = "num-input";
-      inp.setAttribute("aria-label", "Siffra " + (idx + 1));
-
-      inp.addEventListener("input", () => {
-        inp.classList.remove("error");
-        document.getElementById("feedbackLine").textContent = "";
-        // Hoppa automatiskt vidare till nästa ruta om man skrivit 2 siffror (eller 1 siffra >= 3)
-        if (inp.value.length >= 2 && idx < EXPECTED_NUMBERS.length - 1) {
-          inputs[idx + 1].focus();
-        }
-      });
-
-      digitsRow.appendChild(inp);
-      inputs.push(inp);
     });
 
     // =========================================================
@@ -421,49 +222,6 @@
     canvas.addEventListener("pointercancel", stopScratch);
 
     window.addEventListener("DOMContentLoaded", initPlasterCanvas);
-
-    // =========================================================
-    // KONTROLLERA SIFFROR & VISA POPUP
-    // =========================================================
-    function checkNumbers(e) {
-      e.preventDefault();
-      let allCorrect = true;
-
-      inputs.forEach((inp, idx) => {
-        const val = parseInt(inp.value, 10);
-        if (val === EXPECTED_NUMBERS[idx]) {
-          inp.classList.remove("error");
-          inp.classList.add("correct");
-        } else {
-          inp.classList.remove("correct");
-          inp.classList.add("error");
-          allCorrect = false;
-        }
-      });
-
-      if (!allCorrect) {
-        document.getElementById("feedbackLine").textContent = "Inte riktigt – kontrollera siffrorna igen.";
-        return;
-      }
-
-      document.getElementById("feedbackLine").textContent = "";
-
-      // Fyll i skruvnumren i popup-rutan
-      const pillsEl = document.getElementById("screwPills");
-      pillsEl.innerHTML = "";
-      EXPECTED_NUMBERS.forEach(num => {
-        const pill = document.createElement("span");
-        pill.className = "screw-pill";
-        pill.textContent = "#" + num;
-        pillsEl.appendChild(pill);
-      });
-
-      document.getElementById("successPopup").style.display = "flex";
-    }
-
-    function closePopup() {
-      document.getElementById("successPopup").style.display = "none";
-    }
   </script>
 </body>
 </html>
