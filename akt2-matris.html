@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Akt 2 - Logikmatrisen</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .clue-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0 16px;
+    }
+    .clue-list li {
+      background: #13070c;
+      border-left: 3px solid var(--gold);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 0.8rem;
+    }
+    .matrix-table th, .matrix-table td {
+      border: 1px solid var(--border);
+      padding: 7px 4px;
+      text-align: center;
+    }
+    .matrix-table th {
+      background: var(--bg-card-elevated);
+      color: var(--gold-light);
+    }
+    .matrix-table select {
+      width: 100%;
+      background: #11060a;
+      color: #fff;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      padding: 6px 2px;
+      outline: none;
+    }
+    .matrix-table select:focus {
+      border-color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="hud" class="hud-bar"></div>
+
+    <div class="card">
+      <h2>Akt 2 • Vinkällarens Logikmatris</h2>
+      <p class="muted">På vinkällarens fyra hyllor (Hylla 1 till 4, nerifrån och upp) ligger fyra unika flaskor. Fyll i <strong>hela matrisen</strong> korrekt för att låsa upp nästa steg:</p>
+
+      <ul class="clue-list">
+        <li><strong>1.</strong> Flaskan från <strong>Frankrike</strong> ligger direkt ovanför flaskan som kostar <strong>450 kr</strong>.</li>
+        <li><strong>2.</strong> Vinet från årgång <strong>1998</strong> ligger på <strong>Hylla 1</strong>.</li>
+        <li><strong>3.</strong> Flaskan som kostar <strong>1 200 kr</strong> är från <strong>Italien</strong> och ligger högst upp (Hylla 4).</li>
+        <li><strong>4.</strong> Flaskan från <strong>Tyskland</strong> är från <strong>2005</strong> och kostar <strong>600 kr</strong>.</li>
+        <li><strong>5.</strong> Flaskan från <strong>1992</strong> kostar <strong>850 kr</strong> (den fjärde årgången är <strong>2011</strong>).</li>
+      </ul>
+
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Hylla</th>
+            <th>Land</th>
+            <th>Årtal</th>
+            <th>Pris</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Hylla 4</strong></td>
+            <td>
+              <select id="h4-land">
+                <option value="">Välj...</option>
+                <option value="Frankrike">Frankrike</option>
+                <option value="Italien">Italien</option>
+                <option value="Spanien">Spanien</option>
+                <option value="Tyskland">Tyskland</option>
+              </select>
+            </td>
+            <td>
+              <select id="h4-year">
+                <option value="">Välj...</option>
+                <option value="1992">1992</option>
+                <option value="1998">1998</option>
+                <option value="2005">2005</option>
+                <option value="2011">2011</option>
+              </select>
+            </td>
+            <td>
+              <select id="h4-price">
+                <option value="">Välj...</option>
+                <option value="450">450 kr</option>
+                <option value="600">600 kr</option>
+                <option value="850">850 kr</option>
+                <option value="1200">1 200 kr</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Hylla 3</strong></td>
+            <td>
+              <select id="h3-land">
+                <option value="">Välj...</option>
+                <option value="Frankrike">Frankrike</option>
+                <option value="Italien">Italien</option>
+                <option value="Spanien">Spanien</option>
+                <option value="Tyskland">Tyskland</option>
+              </select>
+            </td>
+            <td>
+              <select id="h3-year">
+                <option value="">Välj...</option>
+                <option value="1992">1992</option>
+                <option value="1998">1998</option>
+                <option value="2005">2005</option>
+                <option value="2011">2011</option>
+              </select>
+            </td>
+            <td>
+              <select id="h3-price">
+                <option value="">Välj...</option>
+                <option value="450">450 kr</option>
+                <option value="600">600 kr</option>
+                <option value="850">850 kr</option>
+                <option value="1200">1 200 kr</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Hylla 2</strong></td>
+            <td>
+              <select id="h2-land">
+                <option value="">Välj...</option>
+                <option value="Frankrike">Frankrike</option>
+                <option value="Italien">Italien</option>
+                <option value="Spanien">Spanien</option>
+                <option value="Tyskland">Tyskland</option>
+              </select>
+            </td>
+            <td>
+              <select id="h2-year">
+                <option value="">Välj...</option>
+                <option value="1992">1992</option>
+                <option value="1998">1998</option>
+                <option value="2005">2005</option>
+                <option value="2011">2011</option>
+              </select>
+            </td>
+            <td>
+              <select id="h2-price">
+                <option value="">Välj...</option>
+                <option value="450">450 kr</option>
+                <option value="600">600 kr</option>
+                <option value="850">850 kr</option>
+                <option value="1200">1 200 kr</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Hylla 1</strong></td>
+            <td>
+              <select id="h1-land">
+                <option value="">Välj...</option>
+                <option value="Frankrike">Frankrike</option>
+                <option value="Italien">Italien</option>
+                <option value="Spanien">Spanien</option>
+                <option value="Tyskland">Tyskland</option>
+              </select>
+            </td>
+            <td>
+              <select id="h1-year">
+                <option value="">Välj...</option>
+                <option value="1992">1992</option>
+                <option value="1998">1998</option>
+                <option value="2005">2005</option>
+                <option value="2011">2011</option>
+              </select>
+            </td>
+            <td>
+              <select id="h1-price">
+                <option value="">Välj...</option>
+                <option value="450">450 kr</option>
+                <option value="600">600 kr</option>
+                <option value="850">850 kr</option>
+                <option value="1200">1 200 kr</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button class="btn" onclick="checkFullMatrix()">Verifiera hela matrisen →</button>
+      <div id="feedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    try { saveProgress("akt2-matris.html", 1); } catch (e) {}
+    try { renderHUD("Akt 2 • 2/3", 1); } catch (e) {}
+
+    // Verifierad och unik lösning:
+    // Hylla 4: Italien, 2011, 1200 kr
+    // Hylla 3: Tyskland, 2005, 600 kr
+    // Hylla 2: Frankrike, 1992, 850 kr
+    // Hylla 1: Spanien, 1998, 450 kr
+    const SOLUTION = {
+      "h4-land": "Italien",   "h4-year": "2011", "h4-price": "1200",
+      "h3-land": "Tyskland",  "h3-year": "2005", "h3-price": "600",
+      "h2-land": "Frankrike", "h2-year": "1992", "h2-price": "850",
+      "h1-land": "Spanien",   "h1-year": "1998", "h1-price": "450"
+    };
+
+    function checkFullMatrix() {
+      const fb = document.getElementById("feedback");
+      const keys = Object.keys(SOLUTION);
+
+      for (const k of keys) {
+        if (document.getElementById(k).value === "") {
+          fb.className = "feedback error";
+          fb.textContent = "Fyll i samtliga 12 fält i matrisen innan ni verifierar.";
+          return;
+        }
+      }
+
+      const allCorrect = keys.every(k => document.getElementById(k).value === SOLUTION[k]);
+      if (allCorrect) {
+        fb.className = "feedback success";
+        fb.textContent = "Hela logikmatrisen stämmer!";
+        try { saveProgress("akt2-loggbok.html", 1); } catch (e) {}
+        setTimeout(() => {
+          window.location.href = "akt2-loggbok.html";
+        }, 800);
+      } else {
+        fb.className = "feedback error";
+        fb.textContent = "Minst ett fält i matrisen är felaktigt. Kontrollera villkoren igen.";
+      }
+    }
+  </script>
+</body>
+</html>
