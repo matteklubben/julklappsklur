@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Akt 3 - Dimman i Källarvalvet</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Reservstilar om style.css saknas i fristående förhandsvisning */
+    :root {
+      --bg-dark: #0f070a;
+      --bg-card: #1c0e14;
+      --gold: #d4af37;
+      --gold-light: #f3d778;
+      --text-main: #f8f1f3;
+      --text-muted: #b89ea6;
+      --border: rgba(212, 175, 55, 0.25);
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at 50% 0%, #2a101a 0%, #0f070a 80%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 14px 14px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .hud-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .act-badge {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      background: rgba(212, 175, 55, 0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .code-slots { display: flex; gap: 6px; align-items: center; }
+    .code-slot {
+      width: 30px; height: 34px; border-radius: 6px;
+      background: #12060a; border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.05rem; color: var(--text-muted);
+    }
+    .code-slot.unlocked {
+      background: rgba(212, 175, 55, 0.22);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+    }
+    .card h2 { font-size: 1.12rem; color: var(--gold); margin: 0 0 8px; }
+    .card .muted { color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; }
+
+    .maze-header-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      background: #13060a;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 12px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+    }
+    .inv-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: #1e0c13;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      color: #8c7773;
+      font-weight: 700;
+      transition: all 0.25s ease;
+    }
+    .inv-badge.collected {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: var(--gold);
+      color: var(--gold-light);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.28);
+    }
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 410px;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid var(--gold);
+      background: #070204;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85);
+      touch-action: none;
+    }
+    canvas#mazeCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .game-dialog {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      background: linear-gradient(180deg, rgba(38, 16, 25, 0.96) 0%, rgba(18, 7, 12, 0.98) 100%);
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #f7efe9;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.92);
+      z-index: 20;
+      display: none;
+      animation: popBox 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes popBox {
+      0% { transform: translateY(12px) scale(0.95); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .game-dialog-title {
+      font-weight: 800;
+      color: var(--gold-light);
+      font-size: 0.92rem;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .game-dialog-text {
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #e6d7d3;
+      margin-bottom: 10px;
+    }
+    .game-dialog-btn {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #d4af37 0%, #b58d22 100%);
+      color: #16070c;
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      grid-template-rows: repeat(2, 54px);
+      gap: 8px;
+      justify-content: center;
+      margin: 6px auto 2px;
+    }
+    .dpad-btn {
+      background: linear-gradient(180deg, #2a121c 0%, #17080e 100%);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      border-radius: 14px;
+      color: var(--gold-light);
+      font-size: 1.35rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+    }
+    .dpad-btn:active {
+      transform: scale(0.92);
+      background: rgba(212, 175, 55, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="hud" class="hud-bar"></div>
+
+    <div class="card">
+      <h2>Akt 3 • Del 1: Dimman i Valvet</h2>
+      <p class="muted" style="margin-bottom: 10px;">
+        Led den lilla alven djupt in i källarens dimma. Leta upp den gömda <strong>magiska harpan</strong> för att söva trollet som vaktar passagen, hämta <strong>nyckeln</strong> och öppna <strong>dörren</strong>.
+      </p>
+
+      <div class="maze-header-status">
+        <span id="badgeHarp" class="inv-badge">🎵 Harpa: Saknas</span>
+        <span id="badgeTroll" class="inv-badge">👹 Troll: Vaken</span>
+        <span id="badgeKey" class="inv-badge">🗝️ Nyckel: Saknas</span>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="mazeCanvas" width="456" height="456"></canvas>
+
+        <div id="gameDialog" class="game-dialog">
+          <div id="dialogTitle" class="game-dialog-title"></div>
+          <div id="dialogText" class="game-dialog-text"></div>
+          <button id="dialogBtn" class="game-dialog-btn" onclick="closeDialog()">Fortsätt</button>
+        </div>
+      </div>
+
+      <div class="dpad-grid" aria-label="Styr alven">
+        <div></div>
+        <button class="dpad-btn" ontouchstart="handleMoveBtn(event, 0, -1)" onclick="movePlayer(0, -1)" aria-label="Upp">▲</button>
+        <div></div>
+        <button class="dpad-btn" ontouchstart="handleMoveBtn(event, -1, 0)" onclick="movePlayer(-1, 0)" aria-label="Vänster">◀</button>
+        <button class="dpad-btn" ontouchstart="handleMoveBtn(event, 0, 1)" onclick="movePlayer(0, 1)" aria-label="Ner">▼</button>
+        <button class="dpad-btn" ontouchstart="handleMoveBtn(event, 1, 0)" onclick="movePlayer(1, 0)" aria-label="Höger">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    // Säkra reservfunktioner om config.js inte finns tillgänglig i fristående förhandsvisning
+    if (typeof window.saveProgress !== "function") {
+      window.saveProgress = function (pageFile) {
+        try {
+          localStorage.setItem("vinkallaren_escape_progress_v1", pageFile);
+        } catch (e) {}
+      };
+    }
+    if (typeof window.renderHUD !== "function") {
+      window.renderHUD = function (actLabel, unlockedCount) {
+        const hud = document.getElementById("hud");
+        if (!hud) return;
+        const cfg = window.VAULT_CONFIG || { digit1: "7", digit2: "4", digit3: "9" };
+        const d1 = unlockedCount >= 1 ? cfg.digit1 : "?";
+        const d2 = unlockedCount >= 2 ? cfg.digit2 : "?";
+        const d3 = unlockedCount >= 3 ? cfg.digit3 : "?";
+        hud.innerHTML = `
+          <span class="act-badge">${actLabel}</span>
+          <div class="code-slots" aria-label="Upplåsta siffror">
+            <div class="code-slot ${unlockedCount >= 1 ? "unlocked" : ""}">${d1}</div>
+            <div class="code-slot ${unlockedCount >= 2 ? "unlocked" : ""}">${d2}</div>
+            <div class="code-slot ${unlockedCount >= 3 ? "unlocked" : ""}">${d3}</div>
+          </div>
+        `;
+      };
+    }
+
+    saveProgress("akt3-dimma.html");
+    renderHUD("Akt 3 • Del 1/3", 2);
+
+    // 19x19 Labyrint (1 = stenmur, 0 = gång)
+    // - Start: (1, 1) uppe till vänster
+    // - Övre zonen (rad 1-8) har flera återvändsgränder och förgreningar.
+    //   Den magiska harpan (17, 1) ligger gömd längst bort i en slingrande sidogång i nordöstra hörnet.
+    // - Flaskhalsen (9, 9) i mitten är ENDA passagen ner till den södra zonen -> här vaktar Trollet!
+    // - Södra zonen (rad 10-17) har nyckeln (1, 17) i sydväst och dörren (17, 17) i sydost.
+    const MAZE = [
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1], // (17,1) = Harpan längst inne i nordöstra vrån
+      [1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1],
+      [1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1],
+      [1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1],
+      [1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1],
+      [1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1],
+      [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,1],
+      [1,0,1,0,0,0,1,0,1,0,1,1,1,0,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1], // (9,9) = Flaskhalsen där Trollet vaktar!
+      [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,1],
+      [1,0,1,0,1,0,1,1,1,1,1,0,1,1,1,0,1,0,1],
+      [1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1],
+      [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1],
+      [1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1],
+      [1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1],
+      [1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1],
+      [1,0,1,0,0,0,1,1,1,1,1,1,1,0,1,1,1,0,1], // (1,17) = Nyckeln, (17,17) = Dörren
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    const ROWS = MAZE.length;
+    const COLS = MAZE[0].length;
+
+    const player = { x: 1, y: 1, rx: 1, ry: 1, step: 0 };
+    const harp   = { x: 17, y: 1, collected: false };
+    const troll  = { x: 9, y: 9, asleep: false };
+    const keyObj = { x: 1, y: 17, collected: false };
+    const door   = { x: 17, y: 17, openProgress: 0, opening: false };
+
+    let dialogOpen = false;
+    let activeCeleb = null;
+    let doorOpenDone = false;
+
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    const TILE = canvas.width / COLS;
+
+    // Web Audio API ljudeffekter
+    let audioCtx = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+    }
+
+    function playNote(freq, startTime, duration, type = "triangle", gainVal = 0.14) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0.001, startTime);
+      gain.gain.exponentialRampToValueAtTime(gainVal, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0008, startTime + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.02);
+    }
+
+    function playItemFanfare() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const notes = [
+        { f: 783.99, t: 0.00, d: 0.13 },
+        { f: 739.99, t: 0.12, d: 0.13 },
+        { f: 622.25, t: 0.24, d: 0.13 },
+        { f: 440.00, t: 0.36, d: 0.13 },
+        { f: 415.30, t: 0.48, d: 0.13 },
+        { f: 659.25, t: 0.60, d: 0.13 },
+        { f: 830.61, t: 0.72, d: 0.14 },
+        { f: 1046.50, t: 0.86, d: 0.45 }
+      ];
+      notes.forEach(n => playNote(n.f, now + n.t, n.d, "triangle", 0.15));
+    }
+
+    function playHarpLullaby() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const harpNotes = [
+        { f: 493.88, t: 0.00, d: 0.45 },
+        { f: 587.33, t: 0.28, d: 0.35 },
+        { f: 440.00, t: 0.56, d: 0.65 },
+        { f: 392.00, t: 0.95, d: 0.22 },
+        { f: 440.00, t: 1.15, d: 0.22 },
+        { f: 493.88, t: 1.38, d: 0.45 },
+        { f: 587.33, t: 1.66, d: 0.35 },
+        { f: 440.00, t: 1.94, d: 0.85 }
+      ];
+      harpNotes.forEach(n => playNote(n.f, now + n.t, n.d, "sine", 0.17));
+    }
+
+    function playDoorUnlockSound() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      playNote(523.25, now + 0.00, 0.15, "triangle", 0.15);
+      playNote(659.25, now + 0.12, 0.15, "triangle", 0.15);
+      playNote(783.99, now + 0.24, 0.15, "triangle", 0.15);
+      playNote(1046.50, now + 0.36, 0.55, "triangle", 0.18);
+    }
+
+    function showDialog(title, text, btnLabel = "Fortsätt") {
+      dialogOpen = true;
+      document.getElementById("dialogTitle").innerHTML = title;
+      document.getElementById("dialogText").textContent = text;
+      document.getElementById("dialogBtn").textContent = btnLabel;
+      document.getElementById("gameDialog").style.display = "block";
+    }
+
+    function closeDialog() {
+      dialogOpen = false;
+      activeCeleb = null;
+      document.getElementById("gameDialog").style.display = "none";
+    }
+
+    function updateBadges() {
+      const bHarp = document.getElementById("badgeHarp");
+      const bTroll = document.getElementById("badgeTroll");
+      const bKey = document.getElementById("badgeKey");
+
+      if (harp.collected) {
+        bHarp.textContent = "🎵 Harpa: Hittad";
+        bHarp.classList.add("collected");
+      }
+      if (troll.asleep) {
+        bTroll.textContent = "😴 Troll: Sover";
+        bTroll.classList.add("collected");
+      }
+      if (keyObj.collected) {
+        bKey.textContent = "🗝️ Nyckel: Hittad";
+        bKey.classList.add("collected");
+      }
+    }
+
+    function handleMoveBtn(e, dx, dy) {
+      if (e) e.preventDefault();
+      movePlayer(dx, dy);
+    }
+
+    function movePlayer(dx, dy) {
+      ensureAudio();
+      if (dialogOpen || door.opening || doorOpenDone) return;
+
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+
+      if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return;
+      if (MAZE[ny][nx] === 1) return;
+
+      // Kontrollera om spelaren når Trollet
+      if (nx === troll.x && ny === troll.y && !troll.asleep) {
+        if (!harp.collected) {
+          showDialog(
+            "👹 Trollet blockerar vägen!",
+            "Ett stort källartroll vaktar passagen och släpper inte förbi dig. Leta vidare i labyrintens gångar efter den magiska harpan för att söva honom!"
+          );
+          return;
+        } else {
+          troll.asleep = true;
+          updateBadges();
+          playHarpLullaby();
+          showDialog(
+            "🎵 Magisk vaggsång!",
+            "Du spelar en mjuk melodi på harpan. Trollet gäspar djupt, faller i sömn (zZz) och du kan nu passera!"
+          );
+          return;
+        }
+      }
+
+      // Kontrollera om spelaren når Dörren
+      if (nx === door.x && ny === door.y) {
+        if (!keyObj.collected) {
+          showDialog(
+            "🚪 Dörren är låst!",
+            "Den tunga valvdörren är låst. Du måste hitta nyckeln först!"
+          );
+          return;
+        } else {
+          player.x = nx;
+          player.y = ny;
+          door.opening = true;
+          playDoorUnlockSound();
+          return;
+        }
+      }
+
+      player.x = nx;
+      player.y = ny;
+      player.step++;
+
+      // Plocka upp Harpan
+      if (!harp.collected && player.x === harp.x && player.y === harp.y) {
+        harp.collected = true;
+        updateBadges();
+        activeCeleb = { type: "harp", startTime: performance.now() };
+        playItemFanfare();
+        showDialog(
+          "🎵 Du hittade den Magiska Harpan!",
+          "Den lilla alven lyfter stolt upp harpan! Gå nu tillbaka till trollet och spela en vaggsång."
+        );
+        return;
+      }
+
+      // Plocka upp Nyckeln
+      if (!keyObj.collected && player.x === keyObj.x && player.y === keyObj.y) {
+        keyObj.collected = true;
+        updateBadges();
+        activeCeleb = { type: "key", startTime: performance.now() };
+        playItemFanfare();
+        showDialog(
+          "🗝️ Du hittade Guldnyckeln!",
+          "Alven håller upp nyckeln i skenet! Skynda dig nu till den låsta dörren för att öppna vägen vidare."
+        );
+        return;
+      }
+    }
+
+    // Svep-styrning på kartan
+    let touchStartX = null;
+    let touchStartY = null;
+    canvas.addEventListener("touchstart", e => {
+      if (e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    canvas.addEventListener("touchend", e => {
+      if (touchStartX === null || touchStartY === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      touchStartX = null;
+      touchStartY = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        movePlayer(dx > 0 ? 1 : -1, 0);
+      } else {
+        movePlayer(0, dy > 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    window.addEventListener("keydown", e => {
+      if (dialogOpen && (e.key === "Enter" || e.key === " ")) {
+        closeDialog();
+        return;
+      }
+      if (e.key === "ArrowUp" || e.key === "w") movePlayer(0, -1);
+      if (e.key === "ArrowDown" || e.key === "s") movePlayer(0, 1);
+      if (e.key === "ArrowLeft" || e.key === "a") movePlayer(-1, 0);
+      if (e.key === "ArrowRight" || e.key === "d") movePlayer(1, 0);
+    });
+
+    // =========================================================
+    // MJUKARE GRAFIK: RUNDADE STENVÄGGAR, MJUKT LJUS & KARAKTÄRER
+    // =========================================================
+
+    function drawRoundedWall(x, y, size) {
+      const pad = 0.8;
+      const r = 5;
+      const wx = x + pad;
+      const wy = y + pad;
+      const ww = size - pad * 2;
+      const wh = size - pad * 2;
+
+      const grad = ctx.createLinearGradient(wx, wy, wx, wy + wh);
+      grad.addColorStop(0, "#3a1926");
+      grad.addColorStop(1, "#220d15");
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(wx, wy, ww, wh, r);
+      ctx.fill();
+
+      // Mjuk guldtonad kantlinje upptill för djupkänsla
+      ctx.strokeStyle = "rgba(212, 175, 55, 0.14)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    function drawHarpIcon(cx, cy, scale = 1) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+
+      // Mjukt gyllene skimmer bakom harpan
+      const glow = ctx.createRadialGradient(0, 0, 1, 0, 0, 13);
+      glow.addColorStop(0, "rgba(243, 215, 120, 0.45)");
+      glow.addColorStop(1, "rgba(243, 215, 120, 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#f3d778";
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(-6, 8);
+      ctx.lineTo(-6, -8);
+      ctx.bezierCurveTo(2, -11, 9, -3, 6, 4);
+      ctx.lineTo(-6, 8);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 1;
+      for (let x = -2.5; x <= 2.5; x += 2.5) {
+        ctx.beginPath();
+        ctx.moveTo(x, -5);
+        ctx.lineTo(x, 5);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawKeyIcon(cx, cy, scale = 1) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+
+      const glow = ctx.createRadialGradient(0, 0, 1, 0, 0, 13);
+      glow.addColorStop(0, "rgba(243, 215, 120, 0.45)");
+      glow.addColorStop(1, "rgba(243, 215, 120, 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#f3d778";
+      ctx.lineWidth = 2.3;
+      ctx.lineCap = "round";
+
+      ctx.beginPath();
+      ctx.arc(-3.5, -2.5, 4, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(7, 7);
+      ctx.moveTo(4.5, 4.5);
+      ctx.lineTo(7.5, 1.5);
+      ctx.moveTo(6.5, 6.5);
+      ctx.lineTo(9.5, 3.5);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawElf(cx, cy, time, celebratingType) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const bob = celebratingType ? -1.8 : Math.sin(time * 0.008 + player.step) * 1.1;
+
+      // Mjuk skugga
+      ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
+      ctx.beginPath();
+      ctx.ellipse(0, 8.5, 6.2, 2.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Stövlar (rundade)
+      ctx.fillStyle = "#5c3317";
+      ctx.beginPath();
+      ctx.roundRect(-4.5, 5, 3.6, 3.8, 1.5);
+      ctx.roundRect(0.9, 5, 3.6, 3.8, 1.5);
+      ctx.fill();
+
+      // Grön alv-tunika (mjukt rundad)
+      ctx.fillStyle = "#22a85b";
+      ctx.beginPath();
+      ctx.roundRect(-5.6, -2 + bob, 11.2, 8.2, 3);
+      ctx.fill();
+
+      // Bälte + guldspänne
+      ctx.fillStyle = "#4a2511";
+      ctx.fillRect(-5.4, 2.5 + bob, 10.8, 2);
+      ctx.fillStyle = "#f3d778";
+      ctx.beginPath();
+      ctx.roundRect(-1.4, 2.2 + bob, 2.8, 2.5, 0.8);
+      ctx.fill();
+
+      // Armar
+      ctx.strokeStyle = "#22a85b";
+      ctx.lineWidth = 2.6;
+      ctx.lineCap = "round";
+      if (celebratingType) {
+        ctx.beginPath();
+        ctx.moveTo(-4.5, 0 + bob);
+        ctx.lineTo(-6.2, -9.5 + bob);
+        ctx.moveTo(4.5, 0 + bob);
+        ctx.lineTo(6.2, -9.5 + bob);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(-5.2, 0 + bob);
+        ctx.lineTo(-7, 3.6 + bob);
+        ctx.moveTo(5.2, 0 + bob);
+        ctx.lineTo(7, 3.6 + bob);
+        ctx.stroke();
+      }
+
+      // Spetsiga alvöron (mjukt rundade spetsar)
+      ctx.fillStyle = "#fbd3b4";
+      ctx.beginPath();
+      ctx.moveTo(-5, -4.5 + bob);
+      ctx.quadraticCurveTo(-9.8, -6.5 + bob, -5, -2.5 + bob);
+      ctx.moveTo(5, -4.5 + bob);
+      ctx.quadraticCurveTo(9.8, -6.5 + bob, 5, -2.5 + bob);
+      ctx.fill();
+
+      // Ansikte
+      ctx.fillStyle = "#fbd3b4";
+      ctx.beginPath();
+      ctx.arc(0, -4.5 + bob, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ögon
+      ctx.fillStyle = "#1f1a18";
+      ctx.beginPath();
+      ctx.arc(-2.1, -4.6 + bob, 0.9, 0, Math.PI * 2);
+      ctx.arc(2.1, -4.6 + bob, 0.9, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gult alvhår
+      ctx.fillStyle = "#f4c430";
+      ctx.beginPath();
+      ctx.moveTo(-4.8, -5.8 + bob);
+      ctx.lineTo(-1.8, -8 + bob);
+      ctx.lineTo(0, -5.8 + bob);
+      ctx.lineTo(2, -8 + bob);
+      ctx.lineTo(4.8, -5.8 + bob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Grön spetsig alvluva
+      ctx.fillStyle = "#188547";
+      ctx.beginPath();
+      ctx.moveTo(-5.6, -6.2 + bob);
+      ctx.quadraticCurveTo(0, -14.2 + bob, 7.8, -9.5 + bob);
+      ctx.quadraticCurveTo(3.5, -6.2 + bob, 5.6, -6.2 + bob);
+      ctx.closePath();
+      ctx.fill();
+
+      // "JAG"-animation vid upplockning
+      if (celebratingType) {
+        const pulse = 1 + Math.sin(time * 0.015) * 0.1;
+        if (celebratingType === "harp") {
+          drawHarpIcon(0, -18 + bob, 0.85 * pulse);
+        } else if (celebratingType === "key") {
+          drawKeyIcon(0, -18 + bob, 0.85 * pulse);
+        }
+        for (let i = 0; i < 6; i++) {
+          const ang = (time * 0.005) + (i * Math.PI / 3);
+          const sx = Math.cos(ang) * 12;
+          const sy = -18 + bob + Math.sin(ang) * 7.5;
+          ctx.fillStyle = i % 2 === 0 ? "#fff6cc" : "#f3d778";
+          ctx.beginPath();
+          ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawTroll(cx, cy, time) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const breath = troll.asleep ? Math.sin(time * 0.004) * 1.0 : Math.sin(time * 0.008) * 0.7;
+
+      // Mjuk trollkropp
+      const bodyGrad = ctx.createRadialGradient(-2, -2, 2, 0, 2, 11);
+      bodyGrad.addColorStop(0, troll.asleep ? "#647869" : "#758c70");
+      bodyGrad.addColorStop(1, troll.asleep ? "#3f4d43" : "#495945");
+
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 1.8, 9.5 + breath * 0.4, 8.6 - breath * 0.3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mjuk kalufs
+      ctx.fillStyle = "#2b1d17";
+      ctx.beginPath();
+      ctx.arc(0, -5, 6.8, Math.PI, 0);
+      ctx.fill();
+
+      // Näsa
+      ctx.fillStyle = "#8ca186";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 3.2, 2.3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Små betar
+      ctx.fillStyle = "#f5f0e1";
+      ctx.beginPath();
+      ctx.moveTo(-3.4, 3.5);
+      ctx.lineTo(-2.5, 1);
+      ctx.lineTo(-1.6, 3.5);
+      ctx.moveTo(3.4, 3.5);
+      ctx.lineTo(2.5, 1);
+      ctx.lineTo(1.6, 3.5);
+      ctx.fill();
+
+      if (!troll.asleep) {
+        ctx.fillStyle = "#facc15";
+        ctx.beginPath();
+        ctx.arc(-3.4, -3, 1.8, 0, Math.PI * 2);
+        ctx.arc(3.4, -3, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#111";
+        ctx.beginPath();
+        ctx.arc(-3.4, -3, 0.8, 0, Math.PI * 2);
+        ctx.arc(3.4, -3, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = "#1f2922";
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-5, -3);
+        ctx.lineTo(-1.8, -3);
+        ctx.moveTo(1.8, -3);
+        ctx.lineTo(5, -3);
+        ctx.stroke();
+
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.textAlign = "center";
+        for (let i = 0; i < 3; i++) {
+          const cycle = ((time * 0.0012) + i * 0.33) % 1;
+          const zy = -9 - cycle * 16;
+          const zx = 4 + Math.sin(cycle * Math.PI * 2) * 2.5 + i * 2.6;
+          const alpha = 1 - cycle;
+          ctx.fillStyle = `rgba(243, 215, 120, ${alpha.toFixed(2)})`;
+          ctx.fillText(i === 1 ? "Z" : "z", zx, zy);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawDoor(cx, cy) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const half = TILE * 0.42;
+
+      if (door.openProgress > 0) {
+        const glow = ctx.createRadialGradient(0, 0, 1, 0, 0, half * 1.6);
+        glow.addColorStop(0, `rgba(255, 244, 180, ${Math.min(1, door.openProgress * 1.2)})`);
+        glow.addColorStop(1, "rgba(212, 175, 55, 0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, half * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = "#d4af37";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(-half, -half, half * 2, half * 2, 3);
+      ctx.stroke();
+
+      const openRatio = Math.min(1, door.openProgress);
+      const leafWidth = half * (1 - openRatio * 0.85);
+
+      ctx.fillStyle = "#5a2a18";
+      ctx.fillRect(-half, -half, leafWidth, half * 2);
+      ctx.fillRect(half - leafWidth, -half, leafWidth, half * 2);
+
+      if (openRatio < 0.25) {
+        ctx.fillStyle = "#f3d778";
+        ctx.beginPath();
+        ctx.arc(0, 0, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function renderLoop(now) {
+      // Mjuk interpolation av alvens position för silkeslen rörelse
+      player.rx += (player.x - player.rx) * 0.34;
+      player.ry += (player.y - player.ry) * 0.34;
+
+      if (door.opening && !doorOpenDone) {
+        door.openProgress += 0.025;
+        if (door.openProgress >= 1.15) {
+          doorOpenDone = true;
+          saveProgress("akt3-ror.html");
+          showDialog(
+            "🚪 Dörren har öppnats!",
+            "Guldnyckeln vreds om och den tunga valvdörren glider upp i ett gyllene sken!",
+            "Fortsätt till Del 2 →"
+          );
+          document.getElementById("dialogBtn").onclick = () => {
+            window.location.href = "akt3-ror.html";
+          };
+        }
+      }
+
+      // Mjukt stengolv med subtil gradient
+      const bgGrad = ctx.createRadialGradient(
+        canvas.width * 0.5, canvas.height * 0.5, 20,
+        canvas.width * 0.5, canvas.height * 0.5, canvas.width * 0.75
+      );
+      bgGrad.addColorStop(0, "#1c0a12");
+      bgGrad.addColorStop(1, "#110509");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Rita väggar och svaga golvfogar
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const x = c * TILE;
+          const y = r * TILE;
+          if (MAZE[r][c] === 1) {
+            drawRoundedWall(x, y, TILE);
+          } else {
+            ctx.strokeStyle = "rgba(212, 175, 55, 0.045)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, TILE, TILE);
+          }
+        }
+      }
+
+      // Harpan
+      if (!harp.collected) {
+        const floatY = Math.sin(now * 0.005) * 1.8;
+        drawHarpIcon((harp.x + 0.5) * TILE, (harp.y + 0.5) * TILE + floatY, 0.85);
+      }
+
+      // Nyckeln
+      if (!keyObj.collected) {
+        const floatY = Math.sin(now * 0.005 + 1) * 1.8;
+        drawKeyIcon((keyObj.x + 0.5) * TILE, (keyObj.y + 0.5) * TILE + floatY, 0.85);
+      }
+
+      // Dörren
+      drawDoor((door.x + 0.5) * TILE, (door.y + 0.5) * TILE);
+
+      // Trollet
+      drawTroll((troll.x + 0.5) * TILE, (troll.y + 0.5) * TILE, now);
+
+      // Alven
+      const px = (player.rx + 0.5) * TILE;
+      const py = (player.ry + 0.5) * TILE;
+      drawElf(px, py, now, activeCeleb ? activeCeleb.type : null);
+
+      // Mjuk dimma (Fog of War) med varmt lyktsken runt alven
+      if (!doorOpenDone && door.openProgress < 0.6) {
+        const flicker = Math.sin(now * 0.007) * 2.5;
+        const fogRadius = TILE * 3.15 + flicker;
+        const grad = ctx.createRadialGradient(px, py, TILE * 0.85, px, py, fogRadius);
+        grad.addColorStop(0, "rgba(7, 2, 4, 0)");
+        grad.addColorStop(0.45, "rgba(18, 7, 12, 0.32)");
+        grad.addColorStop(0.78, "rgba(8, 2, 5, 0.78)");
+        grad.addColorStop(1, "rgba(6, 1, 3, 0.96)");
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Låt trollets zZz/ögon anas mjukt genom dimman på nära håll
+        const distTroll = Math.hypot(player.rx - troll.x, player.ry - troll.y);
+        if (distTroll < 4.2) {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, Math.min(1, (4.2 - distTroll) / 2.2));
+          drawTroll((troll.x + 0.5) * TILE, (troll.y + 0.5) * TILE, now);
+          ctx.restore();
+        }
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    requestAnimationFrame(renderLoop);
+  </script>
+</body>
+</html>
