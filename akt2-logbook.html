@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Akt 2 - Vinkällarens Spårpussel</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100dvh;
+      background-color: #0d0408;
+      color: #f3e9e7;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.75); opacity: 0; }
+      70% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes pulseHold {
+      0% { transform: scale(1); background-color: rgba(46, 204, 113, 0.08); }
+      100% { transform: scale(0.95); background-color: rgba(46, 204, 113, 0.24); }
+    }
+    .animate-pop {
+      animation: popIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .cell-holding {
+      animation: pulseHold 0.42s ease-out forwards;
+    }
+    .clean-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .clean-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(212, 175, 55, 0.45);
+      border-radius: 9999px;
+    }
+    .gold-card {
+      background: linear-gradient(180deg, #1b0b12 0%, #12060b 100%);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+    }
+    .gold-btn {
+      background: linear-gradient(135deg, #d4af37 0%, #b58d22 100%);
+      color: #14060a;
+      font-weight: 800;
+    }
+    .gold-btn:active {
+      transform: scale(0.98);
+    }
+    .gold-outline-btn {
+      background: #180910;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      color: #f3d778;
+    }
+    .gold-outline-btn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center">
+
+  <!-- =========================================================
+       REGELRUTA (MODAL SOM ÖPPNAS VIA LITEN REGELKNAPP)
+       ========================================================= -->
+  <div id="rules-modal" style="display: none; z-index: 60;" class="fixed inset-0 items-center justify-center bg-black/75 backdrop-blur-xs px-4 py-5">
+    <div class="w-full max-w-md max-h-[88dvh] flex flex-col gold-card rounded-3xl p-5 animate-pop">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <span class="text-[11px] font-semibold tracking-widest uppercase text-[#d4af37]">Instruktioner</span>
+          <h2 class="text-xl font-bold text-[#f3d778]">Så här lägger du spåret</h2>
+        </div>
+        <button id="close-rules-x" type="button" aria-label="Stäng regler" class="w-9 h-9 rounded-xl gold-outline-btn flex items-center justify-center text-base font-bold cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <div class="bg-[#12050a] rounded-2xl border border-[#d4af37]/25 p-3.5 mb-3">
+        <p class="text-xs leading-relaxed text-[#e2d4d0]">
+          Bygg en sammanhängande räls från <strong class="text-emerald-400">start (grön prick)</strong> till <strong class="text-[#f3d778]">slut (guldprick)</strong>. Siffrorna ovanför och till höger visar exakt hur många rutor med räls som ska ligga i varje kolumn och rad.
+        </p>
+      </div>
+
+      <div class="flex-1 overflow-y-auto clean-scroll pr-1 space-y-2">
+        <!-- 1. Enkeltryck / dra tom ruta -->
+        <div class="flex items-center gap-3 bg-[#14070c] rounded-2xl border border-[#d4af37]/20 p-3">
+          <div class="w-10 h-10 shrink-0 rounded-xl bg-[#0d0408] border border-[#d4af37]/30 flex items-center justify-center">
+            <svg viewBox="0 0 40 40" class="w-6 h-6">
+              <line x1="12" y1="12" x2="28" y2="28" stroke="#EF4444" stroke-opacity="0.7" stroke-width="2.8" stroke-linecap="round"/>
+              <line x1="28" y1="12" x2="12" y2="28" stroke="#EF4444" stroke-opacity="0.7" stroke-width="2.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-[#f3e9e7]">Enkeltryck eller dra över tomma rutor</div>
+            <div class="text-[11px] text-[#cbb8b4] leading-snug mt-0.5">Sätter <span class="text-red-400 font-semibold">röda kryss</span> där det inte ska gå räls. Håll inne och dra för att markera eller sudda flera i rad.</div>
+          </div>
+        </div>
+
+        <!-- 2. Dubbelklicka tom ruta -->
+        <div class="flex items-center gap-3 bg-[#14070c] rounded-2xl border border-[#d4af37]/20 p-3">
+          <div class="w-10 h-10 shrink-0 rounded-xl bg-[#0d0408] border border-[#d4af37]/30 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" class="w-7 h-7">
+              <line x1="50" y1="0" x2="50" y2="100" stroke="#9b7b2f" stroke-width="24" stroke-dasharray="7 9" stroke-dashoffset="4"/>
+              <line x1="38" y1="0" x2="38" y2="100" stroke="#f3d778" stroke-width="5"/>
+              <line x1="62" y1="0" x2="62" y2="100" stroke="#f3d778" stroke-width="5"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-[#f3e9e7]">Dubbelklicka på tom ruta</div>
+            <div class="text-[11px] text-[#cbb8b4] leading-snug mt-0.5">Lägger ut en rälsbit (börjar alltid som rak vertikal räls).</div>
+          </div>
+        </div>
+
+        <!-- 3. Enkeltryck på räls -->
+        <div class="flex items-center gap-3 bg-[#14070c] rounded-2xl border border-[#d4af37]/20 p-3">
+          <div class="w-10 h-10 shrink-0 rounded-xl bg-[#0d0408] border border-[#d4af37]/30 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f3d778" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-[#f3e9e7]">Enkeltryck på utlagd räls</div>
+            <div class="text-[11px] text-[#cbb8b4] leading-snug mt-0.5">Vrider riktningen på rälsen (rak eller svängd åt olika håll).</div>
+          </div>
+        </div>
+
+        <!-- 4. Dubbelklicka på räls -->
+        <div class="flex items-center gap-3 bg-[#14070c] rounded-2xl border border-[#d4af37]/20 p-3">
+          <div class="w-10 h-10 shrink-0 rounded-xl bg-[#0d0408] border border-[#d4af37]/30 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#cbb8b4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-[#f3e9e7]">Dubbelklicka på utlagd räls</div>
+            <div class="text-[11px] text-[#cbb8b4] leading-snug mt-0.5">Tar bort rälsen och gör rutan tom igen.</div>
+          </div>
+        </div>
+
+        <!-- 5. Håll inne stilla på tom ruta -->
+        <div class="flex items-center gap-3 bg-[#14070c] rounded-2xl border border-[#d4af37]/20 p-3">
+          <div class="w-10 h-10 shrink-0 rounded-xl bg-[#0d0408] border border-[#d4af37]/30 flex items-center justify-center">
+            <svg viewBox="0 0 40 40" class="w-5 h-5">
+              <line x1="13" y1="13" x2="27" y2="27" stroke="#22C55E" stroke-opacity="0.8" stroke-width="2.8" stroke-linecap="round"/>
+              <line x1="27" y1="13" x2="13" y2="27" stroke="#22C55E" stroke-opacity="0.8" stroke-width="2.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold text-[#f3e9e7]">Håll inne stilla på tom ruta</div>
+            <div class="text-[11px] text-[#cbb8b4] leading-snug mt-0.5">Sätter ett <span class="text-emerald-400 font-semibold">grönt kryss</span> som minneshjälp där du vet att det ska ligga en räls.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3">
+        <button id="close-rules-btn" type="button" class="w-full py-3 px-5 rounded-2xl gold-btn text-sm shadow-sm transition cursor-pointer touch-manipulation">
+          Tillbaka till spelet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       HUVUDVY: SPELET STARTAR DIREKT
+       ========================================================= -->
+  <div class="w-full max-w-lg mx-auto min-h-[100dvh] flex flex-col justify-between px-3.5 py-2.5">
+    <div>
+      <!-- Escape Room HUD -->
+      <div id="hud" class="hud-bar mb-2"></div>
+
+      <!-- Toppbar med banväljare, timer & liten regelknapp -->
+      <header class="flex items-center justify-between gap-2 gold-card rounded-2xl px-3 py-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <!-- Banväljare -->
+          <div class="relative min-w-0">
+            <select id="puzzle-select" aria-label="Välj bana" class="appearance-none bg-[#12050a] border border-[#d4af37]/40 rounded-xl pl-3 pr-7 py-1.5 text-xs sm:text-sm font-semibold text-[#f3d778] focus:outline-none cursor-pointer touch-manipulation truncate max-w-[185px] sm:max-w-[230px]">
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[#d4af37]">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Timer -->
+          <div id="timer-display" class="px-2.5 py-1.5 rounded-xl bg-[#12050a] border border-[#d4af37]/25 text-xs font-medium text-[#cbb8b4] tabular-nums shrink-0">
+            00:00
+          </div>
+        </div>
+
+        <!-- Liten knapp för regler -->
+        <button id="help-btn" type="button" aria-label="Visa regler" class="px-2.5 py-1.5 rounded-xl gold-outline-btn flex items-center gap-1 text-xs font-bold hover:border-[#f3d778] transition cursor-pointer touch-manipulation shrink-0">
+          <span>?</span>
+          <span>Regler</span>
+        </button>
+      </header>
+
+      <!-- Snabbknapp för att gå vidare när Bana 1 är avklarad -->
+      <div id="unlocked-bar" style="display: none;" class="mt-2 flex items-center justify-between gap-2 bg-emerald-950/75 border border-emerald-500/50 rounded-xl px-3 py-2">
+        <span class="text-xs font-semibold text-emerald-300">✓ Bana 1 klarad! Nästa akt är upplåst.</span>
+        <button id="top-next-act-btn" type="button" class="px-3 py-1.5 rounded-lg gold-btn text-xs shrink-0 cursor-pointer">
+          Nästa utmaning →
+        </button>
+      </div>
+
+      <!-- Status-meddelande -->
+      <div class="h-7 flex items-center justify-center my-1">
+        <div id="status-banner" class="text-xs font-medium text-[#cbb8b4] transition-opacity duration-200 text-center px-3 py-0.5 rounded-full">
+          Klara Bana 1 för att gå vidare (fler banor finns som bonus)
+        </div>
+      </div>
+    </div>
+
+    <!-- Spelbrädet -->
+    <main id="board-wrapper" class="flex-1 flex items-center justify-center w-full min-h-[260px] my-1 overflow-hidden">
+      <div id="board-container" class="flex flex-col items-center justify-center"></div>
+    </main>
+
+    <!-- Verktygsrad längst ner -->
+    <footer class="pt-2 pb-1">
+      <div class="grid grid-cols-3 gap-2">
+        <button id="btn-undo" type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl gold-outline-btn font-semibold text-xs sm:text-sm disabled:opacity-40 transition cursor-pointer touch-manipulation">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 14L4 9l5-5"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 9h10.5a5.5 5.5 0 015.5 5.5v0a5.5 5.5 0 01-5.5 5.5H11"/>
+          </svg>
+          <span>Ångra</span>
+        </button>
+        <button id="btn-check" type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl gold-outline-btn font-semibold text-xs sm:text-sm transition cursor-pointer touch-manipulation">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          <span>Kontrollera</span>
+        </button>
+        <button id="btn-reset" type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl gold-outline-btn font-semibold text-xs sm:text-sm transition cursor-pointer touch-manipulation">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L4 7m16 10l-1.64 1.36A9 9 0 013.51 15"/>
+          </svg>
+          <span>Rensa</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =========================================================
+       VINSTMODAL (NÄR EN BANA ÄR LÖST)
+       ========================================================= -->
+  <div id="win-modal" style="display: none; z-index: 50;" class="fixed inset-0 items-center justify-center bg-black/75 backdrop-blur-xs px-5">
+    <div class="w-full max-w-sm gold-card rounded-3xl p-6 text-center animate-pop">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-950 border border-emerald-500/50 flex items-center justify-center text-emerald-400">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h2 id="win-title" class="text-xl font-bold text-[#f3d778]">Banan löst!</h2>
+      <p id="win-subtitle" class="text-xs sm:text-sm text-[#cbb8b4] mt-1">Snyggt jobbat! Hela spåret hänger ihop.</p>
+
+      <div class="my-4 py-3 px-4 rounded-2xl bg-[#12050a] border border-[#d4af37]/25 flex justify-around text-center">
+        <div>
+          <div class="text-[10px] uppercase tracking-wider text-[#9e8783] font-semibold">Tid</div>
+          <div id="win-time" class="text-base font-bold text-[#f3e9e7] tabular-nums mt-0.5">00:00</div>
+        </div>
+        <div class="w-px bg-[#d4af37]/20"></div>
+        <div>
+          <div class="text-[10px] uppercase tracking-wider text-[#9e8783] font-semibold">Bana</div>
+          <div id="win-level" class="text-base font-bold text-[#f3e9e7] mt-0.5">1 / 4</div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2.5">
+        <!-- Primärknapp: Gå vidare i escape roomet (när Bana 1 är klarad) -->
+        <button id="btn-go-next-act" type="button" class="w-full py-3.5 px-5 rounded-2xl gold-btn text-sm transition cursor-pointer touch-manipulation">
+          Gå vidare till nästa utmaning →
+        </button>
+
+        <!-- Sekundärknapp: Spela fler banor om man vill -->
+        <button id="btn-next-puzzle" type="button" class="w-full py-3 px-5 rounded-2xl gold-outline-btn font-semibold text-xs sm:text-sm transition cursor-pointer touch-manipulation">
+          ↻ Spela nästa bana (Bana 2)
+        </button>
+
+        <button id="btn-close-win" type="button" class="w-full py-2 px-5 rounded-2xl bg-transparent text-[#9e8783] hover:text-[#f3e9e7] font-medium text-xs transition cursor-pointer touch-manipulation">
+          Stanna kvar på brädet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    try { saveProgress("akt2-logbook.html", 1); } catch (e) {}
+    try { renderHUD("Akt 2 • 2/3", 1); } catch (e) {}
+
+    (function () {
+      const NEXT_ACT_URL = "akt2-matrix.html";
+      const NEXT_ACT_INDEX = 1;
+
+      const TRACK_TYPES = ['NS', 'EW', 'NE', 'ES', 'SW', 'WN'];
+      const TRACK_CONNECTIONS = {
+        NS: ['N', 'S'],
+        EW: ['E', 'W'],
+        NE: ['N', 'E'],
+        ES: ['E', 'S'],
+        SW: ['S', 'W'],
+        WN: ['W', 'N']
+      };
+      const OPPOSITE_DIR = { N: 'S', S: 'N', E: 'W', W: 'E' };
+      const DIR_DELTA = {
+        N: { dr: -1, dc: 0 },
+        S: { dr: 1, dc: 0 },
+        E: { dr: 0, dc: 1 },
+        W: { dr: 0, dc: -1 }
+      };
+
+      const PUZZLES = [
+        {
+          id: 1,
+          name: 'Bana 1 · Klassikern (8×6)',
+          rows: 6,
+          cols: 8,
+          colClues: [1, 3, 3, 2, 5, 4, 2, 4],
+          rowClues: [2, 4, 4, 4, 7, 3],
+          start: { r: 3, c: 0, edge: 'W' },
+          end: { r: 5, c: 1, edge: 'S' },
+          givens: [
+            { r: 0, c: 5, type: 'SW' },
+            { r: 3, c: 0, type: 'EW' },
+            { r: 5, c: 1, type: 'NS' },
+            { r: 5, c: 4, type: 'NE' }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Bana 2 · Nybörjare (6×6)',
+          rows: 6,
+          cols: 6,
+          colClues: [0, 3, 3, 4, 5, 0],
+          rowClues: [1, 3, 4, 3, 3, 1],
+          start: { r: 0, c: 1, edge: 'N' },
+          end: { r: 5, c: 4, edge: 'S' },
+          givens: [
+            { r: 0, c: 1, type: 'NS' },
+            { r: 2, c: 2, type: 'EW' },
+            { r: 5, c: 4, type: 'NS' }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Bana 3 · Slingan (6×6)',
+          rows: 6,
+          cols: 6,
+          colClues: [1, 2, 2, 4, 4, 0],
+          rowClues: [3, 3, 3, 2, 1, 1],
+          start: { r: 2, c: 0, edge: 'W' },
+          end: { r: 5, c: 3, edge: 'S' },
+          givens: [
+            { r: 2, c: 0, type: 'EW' },
+            { r: 0, c: 4, type: 'SW' },
+            { r: 3, c: 3, type: 'ES' },
+            { r: 5, c: 3, type: 'NS' }
+          ]
+        },
+        {
+          id: 4,
+          name: 'Bana 4 · Utmaningen (8×6)',
+          rows: 6,
+          cols: 8,
+          colClues: [0, 0, 5, 4, 1, 3, 2, 1],
+          rowClues: [1, 2, 3, 4, 2, 4],
+          start: { r: 0, c: 2, edge: 'N' },
+          end: { r: 2, c: 7, edge: 'E' },
+          givens: [
+            { r: 0, c: 2, type: 'NS' },
+            { r: 3, c: 2, type: 'ES' },
+            { r: 5, c: 5, type: 'WN' },
+            { r: 2, c: 7, type: 'EW' }
+          ]
+        }
+      ];
+
+      let currentPuzzleIndex = 0;
+      let level1Completed = false;
+      let completedLevels = new Set();
+      let gridState = [];
+      let historyStack = [];
+      let isSolved = false;
+      let errorCells = new Set();
+      let elapsedSeconds = 0;
+      let timerInterval = null;
+
+      const rulesModal = document.getElementById('rules-modal');
+      const helpBtn = document.getElementById('help-btn');
+      const closeRulesBtn = document.getElementById('close-rules-btn');
+      const closeRulesX = document.getElementById('close-rules-x');
+      const unlockedBar = document.getElementById('unlocked-bar');
+      const topNextActBtn = document.getElementById('top-next-act-btn');
+
+      const boardContainer = document.getElementById('board-container');
+      const boardWrapper = document.getElementById('board-wrapper');
+      const puzzleSelect = document.getElementById('puzzle-select');
+      const statusBanner = document.getElementById('status-banner');
+      const timerDisplay = document.getElementById('timer-display');
+      const winModal = document.getElementById('win-modal');
+      const btnUndo = document.getElementById('btn-undo');
+      const btnCheck = document.getElementById('btn-check');
+      const btnReset = document.getElementById('btn-reset');
+      const btnGoNextAct = document.getElementById('btn-go-next-act');
+      const btnNextPuzzle = document.getElementById('btn-next-puzzle');
+      const btnCloseWin = document.getElementById('btn-close-win');
+
+      function openRulesModal() {
+        resetGestureState(true);
+        rulesModal.style.display = 'flex';
+      }
+
+      function closeRulesModal() {
+        resetGestureState(true);
+        rulesModal.style.display = 'none';
+      }
+
+      function goToNextAct() {
+        try { saveProgress(NEXT_ACT_URL, NEXT_ACT_INDEX); } catch (e) {}
+        window.location.href = NEXT_ACT_URL;
+      }
+
+      function createTrackSVG(type, isLocked, hasError) {
+        const railColor = hasError ? '#ef4444' : (isLocked ? '#f3d778' : '#f8fafc');
+        const tieColor = hasError ? '#991b1b' : (isLocked ? '#8c6d23' : '#6e561c');
+        let paths = '';
+        switch (type) {
+          case 'NS':
+            paths =
+              '<line x1="50" y1="0" x2="50" y2="100" stroke="' + tieColor + '" stroke-width="24" stroke-dasharray="6 9" stroke-dashoffset="3"/>' +
+              '<line x1="38" y1="0" x2="38" y2="100" stroke="' + railColor + '" stroke-width="4.5"/>' +
+              '<line x1="62" y1="0" x2="62" y2="100" stroke="' + railColor + '" stroke-width="4.5"/>';
+            break;
+          case 'EW':
+            paths =
+              '<line x1="0" y1="50" x2="100" y2="50" stroke="' + tieColor + '" stroke-width="24" stroke-dasharray="6 9" stroke-dashoffset="3"/>' +
+              '<line x1="0" y1="38" x2="100" y2="38" stroke="' + railColor + '" stroke-width="4.5"/>' +
+              '<line x1="0" y1="62" x2="100" y2="62" stroke="' + railColor + '" stroke-width="4.5"/>';
+            break;
+          case 'NE':
+            paths =
+              '<path d="M 50 0 A 50 50 0 0 0 100 50" fill="none" stroke="' + tieColor + '" stroke-width="24" stroke-dasharray="6 9" stroke-dashoffset="3"/>' +
+              '<path d="M 38 0 A 62 62 0 0 0 100 62" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>' +
+              '<path d="M 62 0 A 38 38 0 0 0 100 38" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>';
+            break;
+          case 'ES':
+            paths =
+              '<path d="M 100 50 A 50 50 0 0 0 50 100" fill="none" stroke="' + tieColor + '" stroke-width="24" stroke-dasharray="6 9" stroke-dashoffset="3"/>' +
+              '<path d="M 100 38 A 62 62 0 0 0 38 100" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>' +
+              '<path d="M 100 62 A 38 38 0 0 0 62 100" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>';
+            break;
+          case 'SW':
+            paths =
+              '<path d="M 50 100 A 50 50 0 0 0 0 50" fill="none" stroke="' + tieColor + '" stroke-width="24" stroke-dasharray="6 9" stroke-dashoffset="3"/>' +
+              '<path d="M 62 100 A 62 62 0 0 0 0 38" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>' +
+              '<path d="M 38 100 A 38 38 0 0 0 0 62" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>';
+            break;
+          case 'WN':
+            paths =
+              '<path d="M 0 50 A 50 50 0 0 0 50 0" fill="none" stroke="' + tieColor + '" stroke-width="24" stroke-dasharray="6 9" stroke-dashoffset="3"/>' +
+              '<path d="M 0 62 A 62 62 0 0 0 62 0" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>' +
+              '<path d="M 0 38 A 38 38 0 0 0 38 0" fill="none" stroke="' + railColor + '" stroke-width="4.5"/>';
+            break;
+        }
+        return '<svg viewBox="0 0 100 100" class="w-full h-full block pointer-events-none">' + paths + '</svg>';
+      }
+
+      function createRedXSVG() {
+        return (
+          '<svg viewBox="0 0 100 100" class="w-3/5 h-3/5 pointer-events-none animate-pop">' +
+          '<line x1="26" y1="26" x2="74" y2="74" stroke="#EF4444" stroke-opacity="0.58" stroke-width="6.5" stroke-linecap="round"/>' +
+          '<line x1="74" y1="26" x2="26" y2="74" stroke="#EF4444" stroke-opacity="0.58" stroke-width="6.5" stroke-linecap="round"/>' +
+          '</svg>'
+        );
+      }
+
+      function createGreenXSVG() {
+        return (
+          '<svg viewBox="0 0 100 100" class="w-[44%] h-[44%] pointer-events-none animate-pop">' +
+          '<line x1="28" y1="28" x2="72" y2="72" stroke="#22C55E" stroke-opacity="0.72" stroke-width="7.5" stroke-linecap="round"/>' +
+          '<line x1="72" y1="28" x2="28" y2="72" stroke="#22C55E" stroke-opacity="0.72" stroke-width="7.5" stroke-linecap="round"/>' +
+          '</svg>'
+        );
+      }
+
+      function refreshPuzzleSelector() {
+        puzzleSelect.innerHTML = '';
+        PUZZLES.forEach(function (p, idx) {
+          const opt = document.createElement('option');
+          opt.value = String(idx);
+          const doneMark = completedLevels.has(idx) ? '✓ ' : '';
+          opt.textContent = doneMark + p.name;
+          puzzleSelect.appendChild(opt);
+        });
+        puzzleSelect.value = String(currentPuzzleIndex);
+      }
+
+      function loadPuzzle(index) {
+        resetGestureState(true);
+        currentPuzzleIndex = index;
+        refreshPuzzleSelector();
+        const puzzle = PUZZLES[index];
+        gridState = Array.from({ length: puzzle.rows }, function () {
+          return Array.from({ length: puzzle.cols }, function () {
+            return {
+              kind: 'empty',
+              trackType: null,
+              locked: false
+            };
+          });
+        });
+        puzzle.givens.forEach(function (g) {
+          gridState[g.r][g.c] = {
+            kind: 'track',
+            trackType: g.type,
+            locked: true
+          };
+        });
+        historyStack = [];
+        errorCells.clear();
+        isSolved = false;
+        winModal.style.display = 'none';
+        updateUndoButton();
+
+        if (level1Completed) {
+          setStatus('Bonusspel aktivt – gå vidare när du vill!', 'neutral');
+        } else {
+          setStatus('Klara Bana 1 för att gå vidare (tryck "? Regler" vid behov)', 'neutral');
+        }
+
+        startTimer();
+        renderBoard();
+      }
+
+      function pushHistory() {
+        const snapshot = gridState.map(function (row) {
+          return row.map(function (cell) {
+            return Object.assign({}, cell);
+          });
+        });
+        historyStack.push(snapshot);
+        if (historyStack.length > 80) historyStack.shift();
+        updateUndoButton();
+      }
+
+      function undo() {
+        if (historyStack.length === 0 || isSolved) return;
+        resetGestureState(true);
+        gridState = historyStack.pop();
+        errorCells.clear();
+        updateUndoButton();
+        setStatus('Ångrade senaste draget', 'neutral');
+        renderBoard();
+      }
+
+      function updateUndoButton() {
+        btnUndo.disabled = historyStack.length === 0 || isSolved;
+      }
+
+      function setStatus(text, tone) {
+        statusBanner.textContent = text;
+        statusBanner.className = 'text-xs font-medium transition-opacity duration-200 text-center px-3 py-0.5 rounded-full';
+        if (tone === 'error') {
+          statusBanner.classList.add('text-red-300', 'bg-red-950/80', 'border', 'border-red-500/40');
+        } else if (tone === 'success') {
+          statusBanner.classList.add('text-emerald-300', 'bg-emerald-950/80', 'border', 'border-emerald-500/40');
+        } else {
+          statusBanner.classList.add('text-[#cbb8b4]');
+        }
+      }
+
+      function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        elapsedSeconds = 0;
+        updateTimerDisplay();
+        timerInterval = setInterval(function () {
+          if (!isSolved && rulesModal.style.display === 'none') {
+            elapsedSeconds++;
+            updateTimerDisplay();
+          }
+        }, 1000);
+      }
+
+      function updateTimerDisplay() {
+        const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+        const secs = String(elapsedSeconds % 60).padStart(2, '0');
+        timerDisplay.textContent = mins + ':' + secs;
+      }
+
+      const DOUBLE_TAP_DELAY = 260;
+      const LONG_PRESS_MS = 420;
+      const DRAG_THRESHOLD_PX = 12;
+      const cellGestureState = new Map();
+      let activePointer = null;
+
+      function getGestureEntry(key) {
+        if (!cellGestureState.has(key)) {
+          cellGestureState.set(key, { tapTimer: null });
+        }
+        return cellGestureState.get(key);
+      }
+
+      function triggerHaptic(ms) {
+        if (navigator.vibrate) {
+          try { navigator.vibrate(ms || 12); } catch (_) {}
+        }
+      }
+
+      function clearPendingTapTimers() {
+        cellGestureState.forEach(function (entry) {
+          if (entry.tapTimer) {
+            clearTimeout(entry.tapTimer);
+            entry.tapTimer = null;
+          }
+        });
+      }
+
+      function cancelActiveHoldTimer() {
+        if (!activePointer) return;
+        if (activePointer.holdTimer) {
+          clearTimeout(activePointer.holdTimer);
+          activePointer.holdTimer = null;
+        }
+        if (activePointer.startEl) {
+          activePointer.startEl.classList.remove('cell-holding');
+        }
+      }
+
+      function resetGestureState(clearTapTimers) {
+        const wasDragging = activePointer ? activePointer.isDragging : false;
+        cancelActiveHoldTimer();
+        activePointer = null;
+        if (clearTapTimers) {
+          clearPendingTapTimers();
+        }
+        if (wasDragging) {
+          renderBoard();
+        }
+      }
+
+      function applyDragToCell(r, c) {
+        if (!activePointer) return;
+        const key = r + ',' + c;
+        if (activePointer.visitedCells.has(key)) return;
+        activePointer.visitedCells.add(key);
+        const cell = gridState[r][c];
+        if (cell.locked || cell.kind === 'track') return;
+        const targetKind = activePointer.dragTargetKind;
+        if (cell.kind === targetKind) return;
+        if (!activePointer.historySaved) {
+          pushHistory();
+          activePointer.historySaved = true;
+        }
+        errorCells.clear();
+        cell.kind = targetKind;
+        cell.trackType = null;
+        triggerHaptic(8);
+        renderBoard();
+      }
+
+      function handleBoardPointerDown(e) {
+        if (isSolved) return;
+        const cellEl = e.target.closest('[data-r][data-c]');
+        if (!cellEl) return;
+        const r = Number(cellEl.dataset.r);
+        const c = Number(cellEl.dataset.c);
+        if (Number.isNaN(r) || Number.isNaN(c)) return;
+        if (activePointer !== null) {
+          if (e.pointerId === activePointer.pointerId || (Date.now() - activePointer.startedAt > 2000)) {
+            resetGestureState(false);
+          } else {
+            return;
+          }
+        }
+        const cell = gridState[r][c];
+        if (cell.locked) {
+          setStatus('Denna räls är låst som ledtråd', 'neutral');
+          return;
+        }
+        const key = r + ',' + c;
+        const g = getGestureEntry(key);
+        const hasPendingDoubleTap = Boolean(g.tapTimer);
+        const canStartDrag = cell.kind !== 'track' && !hasPendingDoubleTap;
+        activePointer = {
+          pointerId: e.pointerId,
+          startR: r,
+          startC: c,
+          startX: e.clientX,
+          startY: e.clientY,
+          startEl: cellEl,
+          holdTimer: null,
+          longPressed: false,
+          isDragging: false,
+          dragTargetKind: cell.kind === 'redX' ? 'empty' : 'redX',
+          visitedCells: new Set(),
+          historySaved: false,
+          canStartDrag: canStartDrag,
+          startedAt: Date.now()
+        };
+        if (canStartDrag) {
+          cellEl.classList.add('cell-holding');
+          activePointer.holdTimer = setTimeout(function () {
+            if (!activePointer || activePointer.pointerId !== e.pointerId || activePointer.isDragging) return;
+            activePointer.holdTimer = null;
+            activePointer.longPressed = true;
+            activePointer.canStartDrag = false;
+            cellEl.classList.remove('cell-holding');
+            triggerHaptic(18);
+            applyLongPress(r, c);
+          }, LONG_PRESS_MS);
+        }
+      }
+
+      function handleBoardPointerMove(e) {
+        if (!activePointer || e.pointerId !== activePointer.pointerId || isSolved) return;
+        if (e.buttons === 0 && e.pointerType === 'mouse') {
+          resetGestureState(false);
+          return;
+        }
+        if (!activePointer.canStartDrag || activePointer.longPressed) return;
+        const dx = e.clientX - activePointer.startX;
+        const dy = e.clientY - activePointer.startY;
+        const movedDist = Math.hypot(dx, dy);
+        const elUnderFinger = document.elementFromPoint(e.clientX, e.clientY);
+        const targetCellEl = elUnderFinger ? elUnderFinger.closest('[data-r][data-c]') : null;
+        const hoverR = targetCellEl ? Number(targetCellEl.dataset.r) : null;
+        const hoverC = targetCellEl ? Number(targetCellEl.dataset.c) : null;
+        const enteredAnotherCell =
+          hoverR !== null &&
+          hoverC !== null &&
+          (hoverR !== activePointer.startR || hoverC !== activePointer.startC);
+        if (!activePointer.isDragging) {
+          if (movedDist >= DRAG_THRESHOLD_PX || enteredAnotherCell) {
+            activePointer.isDragging = true;
+            cancelActiveHoldTimer();
+            applyDragToCell(activePointer.startR, activePointer.startC);
+          } else {
+            return;
+          }
+        }
+        if (activePointer.isDragging && hoverR !== null && hoverC !== null) {
+          applyDragToCell(hoverR, hoverC);
+        }
+      }
+
+      function handleBoardPointerUp(e) {
+        if (!activePointer || e.pointerId !== activePointer.pointerId) return;
+        const ptr = activePointer;
+        cancelActiveHoldTimer();
+        activePointer = null;
+        if (isSolved) return;
+        if (ptr.isDragging) {
+          if (ptr.historySaved) {
+            setStatus(
+              ptr.dragTargetKind === 'redX' ? 'Markerade flera röda kryss' : 'Tog bort kryss',
+              'neutral'
+            );
+          }
+          renderBoard();
+          return;
+        }
+        if (ptr.longPressed) {
+          return;
+        }
+        const r = ptr.startR;
+        const c = ptr.startC;
+        const key = r + ',' + c;
+        const g = getGestureEntry(key);
+        if (g.tapTimer) {
+          clearTimeout(g.tapTimer);
+          g.tapTimer = null;
+          triggerHaptic(14);
+          applyDoubleTap(r, c);
+        } else {
+          g.tapTimer = setTimeout(function () {
+            g.tapTimer = null;
+            triggerHaptic(8);
+            applySingleTap(r, c);
+          }, DOUBLE_TAP_DELAY);
+        }
+      }
+
+      function handleBoardPointerCancel(e) {
+        if (!activePointer) return;
+        if (e && typeof e.pointerId === 'number' && e.pointerId !== activePointer.pointerId) return;
+        resetGestureState(false);
+      }
+
+      window.addEventListener('pointerup', function (e) {
+        if (activePointer && e.pointerId === activePointer.pointerId) {
+          handleBoardPointerUp(e);
+        }
+      }, { passive: true });
+      window.addEventListener('pointercancel', function (e) {
+        if (activePointer && e.pointerId === activePointer.pointerId) {
+          resetGestureState(false);
+        }
+      }, { passive: true });
+      window.addEventListener('blur', function () {
+        resetGestureState(true);
+      });
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) resetGestureState(true);
+      });
+
+      function applySingleTap(r, c) {
+        const cell = gridState[r][c];
+        if (cell.locked) return;
+        pushHistory();
+        errorCells.clear();
+        if (cell.kind === 'track') {
+          const idx = TRACK_TYPES.indexOf(cell.trackType);
+          const nextIdx = (idx + 1) % TRACK_TYPES.length;
+          cell.trackType = TRACK_TYPES[nextIdx];
+        } else if (cell.kind === 'redX') {
+          cell.kind = 'empty';
+        } else {
+          cell.kind = 'redX';
+        }
+        renderBoard();
+        autoCheckWinSilent();
+      }
+
+      function applyDoubleTap(r, c) {
+        const cell = gridState[r][c];
+        if (cell.locked) return;
+        pushHistory();
+        errorCells.clear();
+        if (cell.kind === 'track') {
+          cell.kind = 'empty';
+          cell.trackType = null;
+        } else {
+          cell.kind = 'track';
+          cell.trackType = 'NS';
+        }
+        renderBoard();
+        autoCheckWinSilent();
+      }
+
+      function applyLongPress(r, c) {
+        const cell = gridState[r][c];
+        if (cell.locked || cell.kind === 'track') return;
+        pushHistory();
+        errorCells.clear();
+        if (cell.kind === 'greenX') {
+          cell.kind = 'empty';
+          setStatus('Tog bort grönt minneskryss', 'neutral');
+        } else {
+          cell.kind = 'greenX';
+          setStatus('Grönt minneskryss satt', 'neutral');
+        }
+        renderBoard();
+      }
+
+      function getCounts() {
+        const puzzle = PUZZLES[currentPuzzleIndex];
+        const rowCounts = Array(puzzle.rows).fill(0);
+        const colCounts = Array(puzzle.cols).fill(0);
+        for (let r = 0; r < puzzle.rows; r++) {
+          for (let c = 0; c < puzzle.cols; c++) {
+            if (gridState[r][c].kind === 'track') {
+              rowCounts[r]++;
+              colCounts[c]++;
+            }
+          }
+        }
+        return { rowCounts: rowCounts, colCounts: colCounts };
+      }
+
+      function validateSolution() {
+        const puzzle = PUZZLES[currentPuzzleIndex];
+        const counts = getCounts();
+        const rowCounts = counts.rowCounts;
+        const colCounts = counts.colCounts;
+        const errors = new Set();
+        let countsMatch = true;
+        for (let r = 0; r < puzzle.rows; r++) {
+          if (rowCounts[r] !== puzzle.rowClues[r]) countsMatch = false;
+        }
+        for (let c = 0; c < puzzle.cols; c++) {
+          if (colCounts[c] !== puzzle.colClues[c]) countsMatch = false;
+        }
+        let totalTracks = 0;
+        let allConnectionsValid = true;
+        for (let r = 0; r < puzzle.rows; r++) {
+          for (let c = 0; c < puzzle.cols; c++) {
+            const cell = gridState[r][c];
+            if (cell.kind !== 'track') continue;
+            totalTracks++;
+            const conns = TRACK_CONNECTIONS[cell.trackType];
+            for (let i = 0; i < conns.length; i++) {
+              const dir = conns[i];
+              const isStartEdge = (r === puzzle.start.r && c === puzzle.start.c && dir === puzzle.start.edge);
+              const isEndEdge = (r === puzzle.end.r && c === puzzle.end.c && dir === puzzle.end.edge);
+              if (isStartEdge || isEndEdge) continue;
+              const nr = r + DIR_DELTA[dir].dr;
+              const nc = c + DIR_DELTA[dir].dc;
+              if (nr < 0 || nr >= puzzle.rows || nc < 0 || nc >= puzzle.cols) {
+                allConnectionsValid = false;
+                errors.add(r + ',' + c);
+                continue;
+              }
+              const neighbor = gridState[nr][nc];
+              if (neighbor.kind !== 'track') {
+                allConnectionsValid = false;
+                errors.add(r + ',' + c);
+                continue;
+              }
+              const neighborConns = TRACK_CONNECTIONS[neighbor.trackType];
+              if (neighborConns.indexOf(OPPOSITE_DIR[dir]) === -1) {
+                allConnectionsValid = false;
+                errors.add(r + ',' + c);
+                errors.add(nr + ',' + nc);
+              }
+            }
+          }
+        }
+        let singleContinuousPath = false;
+        if (allConnectionsValid && totalTracks > 0) {
+          const visited = new Set();
+          let currR = puzzle.start.r;
+          let currC = puzzle.start.c;
+          let cameFromDir = puzzle.start.edge;
+          while (true) {
+            const startCell = gridState[currR][currC];
+            if (startCell.kind !== 'track') break;
+            const conns = TRACK_CONNECTIONS[startCell.trackType];
+            if (conns.indexOf(cameFromDir) === -1) break;
+            visited.add(currR + ',' + currC);
+            const exitDir = conns[0] === cameFromDir ? conns[1] : conns[0];
+            if (currR === puzzle.end.r && currC === puzzle.end.c && exitDir === puzzle.end.edge) {
+              if (visited.size === totalTracks) {
+                singleContinuousPath = true;
+              }
+              break;
+            }
+            const nextR = currR + DIR_DELTA[exitDir].dr;
+            const nextC = currC + DIR_DELTA[exitDir].dc;
+            if (nextR < 0 || nextR >= puzzle.rows || nextC < 0 || nextC >= puzzle.cols) break;
+            if (visited.has(nextR + ',' + nextC)) break;
+            currR = nextR;
+            currC = nextC;
+            cameFromDir = OPPOSITE_DIR[exitDir];
+          }
+        }
+        return {
+          valid: countsMatch && allConnectionsValid && singleContinuousPath,
+          countsMatch: countsMatch,
+          allConnectionsValid: allConnectionsValid,
+          singleContinuousPath: singleContinuousPath,
+          errors: errors
+        };
+      }
+
+      function autoCheckWinSilent() {
+        const res = validateSolution();
+        if (res.valid) {
+          handlePuzzleSolved();
+        }
+      }
+
+      function manualCheck() {
+        if (isSolved) return;
+        const res = validateSolution();
+        errorCells = res.errors;
+        renderBoard();
+        if (res.valid) {
+          handlePuzzleSolved();
+          return;
+        }
+        if (!res.allConnectionsValid) {
+          setStatus('Några spårändar saknar anslutning eller pekar utåt', 'error');
+        } else if (!res.countsMatch) {
+          setStatus('Antalet rälsrutor stämmer inte med alla siffror än', 'error');
+        } else if (!res.singleContinuousPath) {
+          setStatus('Rälsen måste bilda en enda sammanhängande väg', 'error');
+        }
+      }
+
+      function handlePuzzleSolved() {
+        isSolved = true;
+        errorCells.clear();
+        completedLevels.add(currentPuzzleIndex);
+
+        if (currentPuzzleIndex === 0) {
+          level1Completed = true;
+          try { saveProgress(NEXT_ACT_URL, NEXT_ACT_INDEX); } catch (e) {}
+        }
+
+        refreshPuzzleSelector();
+        updateUndoButton();
+        renderBoard();
+
+        if (level1Completed) {
+          unlockedBar.style.display = 'flex';
+        }
+
+        setStatus('Banan är löst!', 'success');
+        document.getElementById('win-time').textContent = timerDisplay.textContent;
+        document.getElementById('win-level').textContent = (currentPuzzleIndex + 1) + ' / ' + PUZZLES.length;
+
+        const nextIdx = (currentPuzzleIndex + 1) % PUZZLES.length;
+        const nextPuzzleName = PUZZLES[nextIdx].name.split('·')[0].trim();
+
+        if (level1Completed) {
+          document.getElementById('win-title').textContent = currentPuzzleIndex === 0
+            ? 'Bana 1 klarad – Nästa utmaning upplåst!'
+            : 'Bonusbanan klarad!';
+          document.getElementById('win-subtitle').textContent =
+            'Du kan nu gå vidare till nästa utmaning i escape roomet, eller fortsätta spela fler banor om du vill.';
+          btnGoNextAct.style.display = 'block';
+          btnNextPuzzle.textContent = '↻ Spela vidare (' + nextPuzzleName + ')';
+        } else {
+          document.getElementById('win-title').textContent = 'Bonusbanan klarad!';
+          document.getElementById('win-subtitle').textContent =
+            'Snyggt! Byt till Bana 1 i listan och klara den för att låsa upp vägen vidare.';
+          btnGoNextAct.style.display = 'none';
+          btnNextPuzzle.textContent = 'Spela Bana 1 (krävs för att gå vidare)';
+        }
+
+        setTimeout(function () {
+          winModal.style.display = 'flex';
+        }, 320);
+      }
+
+      function renderBoard() {
+        const puzzle = PUZZLES[currentPuzzleIndex];
+        const rows = puzzle.rows;
+        const cols = puzzle.cols;
+        const counts = getCounts();
+        const rowCounts = counts.rowCounts;
+        const colCounts = counts.colCounts;
+
+        const wrapRect = boardWrapper.getBoundingClientRect();
+        const availW = Math.max(250, wrapRect.width - 6);
+        const availH = Math.max(250, window.innerHeight - 235);
+        const maxCellW = Math.floor(availW / (cols + 0.95));
+        const maxCellH = Math.floor(availH / (rows + 0.95));
+        const cellSize = Math.max(34, Math.min(54, maxCellW, maxCellH));
+        const clueFontSize = Math.max(15, Math.floor(cellSize * 0.46));
+
+        boardContainer.innerHTML = '';
+        const gridEl = document.createElement('div');
+        gridEl.id = 'board-grid';
+        gridEl.style.display = 'grid';
+        gridEl.style.gridTemplateColumns = 'repeat(' + cols + ', ' + cellSize + 'px) ' + Math.floor(cellSize * 0.9) + 'px';
+        gridEl.style.gridTemplateRows = Math.floor(cellSize * 0.85) + 'px repeat(' + rows + ', ' + cellSize + 'px)';
+        gridEl.style.touchAction = 'none';
+        gridEl.className = 'select-none';
+
+        gridEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        gridEl.addEventListener('pointerdown', handleBoardPointerDown);
+        gridEl.addEventListener('pointermove', handleBoardPointerMove);
+        gridEl.addEventListener('pointerup', handleBoardPointerUp);
+        gridEl.addEventListener('pointercancel', handleBoardPointerCancel);
+
+        // 1. Kolumnsiffror överst
+        for (let c = 0; c < cols; c++) {
+          const clueEl = document.createElement('div');
+          const target = puzzle.colClues[c];
+          const current = colCounts[c];
+          let colorClass = 'text-[#f3d778]';
+          if (current === target) {
+            colorClass = 'text-emerald-400';
+          } else if (current > target) {
+            colorClass = 'text-red-400';
+          }
+          clueEl.className = 'flex items-center justify-center font-bold tabular-nums transition-colors ' + colorClass;
+          clueEl.style.fontSize = clueFontSize + 'px';
+          clueEl.textContent = String(target);
+          gridEl.appendChild(clueEl);
+        }
+        const cornerEl = document.createElement('div');
+        gridEl.appendChild(cornerEl);
+
+        // 2. Spelrader + Radsiffror
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell = gridState[r][c];
+            const key = r + ',' + c;
+            const hasError = errorCells.has(key);
+            const cellEl = document.createElement('div');
+            cellEl.dataset.r = String(r);
+            cellEl.dataset.c = String(c);
+
+            const borderTop = r === 0 ? 'border-t-2 border-t-[#d4af37]/75' : 'border-t border-t-[#d4af37]/25';
+            const borderLeft = c === 0 ? 'border-l-2 border-l-[#d4af37]/75' : 'border-l border-l-[#d4af37]/25';
+            const borderRight = c === cols - 1 ? 'border-r-2 border-r-[#d4af37]/75' : '';
+            const borderBottom = r === rows - 1 ? 'border-b-2 border-b-[#d4af37]/75' : '';
+
+            let bgClass = 'bg-[#17090f]';
+            if (hasError) {
+              bgClass = 'bg-red-950/90';
+            } else if (cell.locked) {
+              bgClass = 'bg-[#261019]';
+            }
+
+            cellEl.className = 'relative flex items-center justify-center ' + bgClass + ' ' + borderTop + ' ' + borderLeft + ' ' + borderRight + ' ' + borderBottom + ' transition-colors duration-100';
+            cellEl.style.width = cellSize + 'px';
+            cellEl.style.height = cellSize + 'px';
+
+            if (cell.kind === 'track' && cell.trackType) {
+              cellEl.innerHTML = createTrackSVG(cell.trackType, cell.locked, hasError);
+            } else if (cell.kind === 'redX') {
+              cellEl.innerHTML = createRedXSVG();
+            } else if (cell.kind === 'greenX') {
+              cellEl.innerHTML = createGreenXSVG();
+            }
+
+            const isStart = (r === puzzle.start.r && c === puzzle.start.c);
+            const isEnd = (r === puzzle.end.r && c === puzzle.end.c);
+            if (isStart || isEnd) {
+              const badge = document.createElement('span');
+              const edge = isStart ? puzzle.start.edge : puzzle.end.edge;
+              let posClass = '';
+              if (edge === 'W') posClass = '-left-1.5 top-1/2 -translate-y-1/2';
+              if (edge === 'E') posClass = '-right-1.5 top-1/2 -translate-y-1/2';
+              if (edge === 'N') posClass = '-top-1.5 left-1/2 -translate-x-1/2';
+              if (edge === 'S') posClass = '-bottom-1.5 left-1/2 -translate-x-1/2';
+              badge.className = 'absolute ' + posClass + ' w-3 h-3 rounded-full ' + (isStart ? 'bg-emerald-400' : 'bg-[#f3d778]') + ' ring-2 ring-[#0d0408] pointer-events-none z-10';
+              cellEl.appendChild(badge);
+            }
+            gridEl.appendChild(cellEl);
+          }
+
+          const rowClueEl = document.createElement('div');
+          const target = puzzle.rowClues[r];
+          const current = rowCounts[r];
+          let colorClass = 'text-[#f3d778]';
+          if (current === target) {
+            colorClass = 'text-emerald-400';
+          } else if (current > target) {
+            colorClass = 'text-red-400';
+          }
+          rowClueEl.className = 'flex items-center justify-center font-bold tabular-nums transition-colors ' + colorClass;
+          rowClueEl.style.fontSize = clueFontSize + 'px';
+          rowClueEl.textContent = String(target);
+          gridEl.appendChild(rowClueEl);
+        }
+
+        boardContainer.appendChild(gridEl);
+      }
+
+      // Eventlyssnare
+      helpBtn.addEventListener('click', openRulesModal);
+      closeRulesBtn.addEventListener('click', closeRulesModal);
+      closeRulesX.addEventListener('click', closeRulesModal);
+      rulesModal.addEventListener('click', function (e) {
+        if (e.target === rulesModal) closeRulesModal();
+      });
+
+      puzzleSelect.addEventListener('change', function (e) {
+        loadPuzzle(Number(e.target.value));
+      });
+
+      btnUndo.addEventListener('click', undo);
+      btnCheck.addEventListener('click', manualCheck);
+      btnReset.addEventListener('click', function () {
+        loadPuzzle(currentPuzzleIndex);
+        setStatus('Brädet rensat', 'neutral');
+      });
+
+      btnGoNextAct.addEventListener('click', goToNextAct);
+      topNextActBtn.addEventListener('click', goToNextAct);
+
+      btnNextPuzzle.addEventListener('click', function () {
+        if (!level1Completed) {
+          loadPuzzle(0);
+        } else {
+          const nextIdx = (currentPuzzleIndex + 1) % PUZZLES.length;
+          loadPuzzle(nextIdx);
+        }
+      });
+
+      btnCloseWin.addEventListener('click', function () {
+        winModal.style.display = 'none';
+      });
+
+      window.addEventListener('resize', function () {
+        renderBoard();
+      });
+
+      // Starta direkt på Bana 1 utan startskärm
+      refreshPuzzleSelector();
+      loadPuzzle(0);
+    })();
+  </script>
+</body>
+</html>
